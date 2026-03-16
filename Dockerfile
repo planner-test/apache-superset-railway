@@ -9,20 +9,21 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip install mysqlclient psycopg2-binary
+RUN . /app/.venv/bin/activate && \
+    uv pip install mysqlclient psycopg2-binary
 
 ENV ADMIN_USERNAME $ADMIN_USERNAME
 ENV ADMIN_EMAIL $ADMIN_EMAIL
 ENV ADMIN_PASSWORD $ADMIN_PASSWORD
 ENV DATABASE $DATABASE
-
-COPY /config/superset_init.sh ./superset_init.sh
-RUN chmod +x ./superset_init.sh
-
-COPY /config/superset_config.py /app/
-ENV SUPERSET_CONFIG_PATH /app/superset_config.py
 ENV SECRET_KEY $SECRET_KEY
+
+COPY /config/superset_init.sh /app/superset_init.sh
+RUN chmod +x /app/superset_init.sh
+
+COPY /config/superset_config.py /app/superset_config.py
+ENV SUPERSET_CONFIG_PATH=/app/superset_config.py
 
 USER superset
 
-ENTRYPOINT [ "./superset_init.sh" ]
+ENTRYPOINT ["/app/superset_init.sh"]
